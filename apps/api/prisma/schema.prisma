@@ -1,0 +1,122 @@
+// Prisma Schema for Movtime
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  favorites     Favorite[]
+  lists         List[]
+  searchHistory SearchHistory[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+// OAuth accounts (NextAuth compatible)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// Sessions (NextAuth compatible)
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// Favorites - User's favorite movies/TV shows
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  mediaId   Int      // TMDB ID
+  mediaType String   // 'movie' or 'tv'
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId, mediaType])
+  @@index([userId])
+  @@index([mediaId, mediaType])
+  @@map("favorites")
+}
+
+// Lists - User's custom lists (Watchlist, Favorites, etc.)
+model List {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isPublic    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       ListItem[]
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("lists")
+}
+
+// List Items - Items in a user's list
+model ListItem {
+  id        String   @id @default(cuid())
+  listId    String
+  mediaId   Int      // TMDB ID
+  mediaType String   // 'movie' or 'tv'
+  addedAt   DateTime @default(now())
+  list      List     @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, mediaId, mediaType])
+  @@index([listId])
+  @@index([mediaId, mediaType])
+  @@map("list_items")
+}
+
+// Search History - Track user searches
+model SearchHistory {
+  id        String    @id @default(cuid())
+  userId    String
+  query     String
+  mediaType String?   // 'movie', 'tv', or null for all
+  country   String?   // ISO country code
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("search_history")
+}
+

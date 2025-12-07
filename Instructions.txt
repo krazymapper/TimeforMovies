@@ -1,0 +1,117 @@
+Je veux que tu génères une application web complète, production-ready, dont la fonction est d’indiquer sur quelles plateformes légales il est possible de regarder un film, un anime ou une série TV, par pays, gratuit/payant, abonnement, qualité HD, etc.
+
+Aucune fonctionnalité illégale.
+Aucun téléchargement pirate.
+Uniquement les agrégateurs officiels / APIs légales (Watchmode, TMDB Watch Providers, etc.).
+
+📌 Fonctionnalités principales
+
+Recherche intelligente
+
+Titre, acteur, réalisateur
+
+Suggestions instantanées (Meilisearch)
+
+Page d’un film / série
+
+Synopsis, casting, trailer
+
+Disponibilités légales (SVOD, TVOD, AVOD)
+
+Liens cliquables vers les plateformes
+
+Authentification
+
+OAuth (Google / GitHub / Apple) avec NextAuth
+
+Favoris + listes
+
+Historique des recherches
+
+Localisation
+
+Détection automatique du pays
+
+Possibilité de changer manuellement
+
+🧱 Stack requise
+
+Front-end : Next.js 15 + TypeScript
+
+UI : TailwindCSS + shadcn/ui
+
+Back-end : NestJS + TypeScript
+
+Database : PostgreSQL + Prisma
+
+Cache : Redis (Upstash)
+
+Search : Meilisearch
+
+Monitoring : Sentry
+
+CI/CD : GitHub Actions
+
+🔧 Architecture & conventions
+
+Monorepo Turborepo
+
+Tests unitaires + e2e (Vitest + Playwright)
+
+Validation stricte avec Zod
+
+Code commenté et robuste
+
+Gestion des erreurs standardisée
+
+Anti-throttling pour APIs externes
+
+Cache intelligent (TTL dynamique basé sur popularité du film)
+
+❗ Anticipation des bugs, pièges et edge cases
+
+Merci d’anticiper :
+
+API rate limits
+
+absence temporaire de réponses API
+
+conflits Zod / Prisma
+
+slugs dupliqués
+
+pagination infinie
+
+fallback pour images manquantes
+
+changement de région non pris en compte
+
+SSR/ISR + hydration mismatch
+
+scènes où le titre est multilingue
+
+films introuvables
+
+erreurs réseau + retry backoff
+
+merges de données provenant de multiples APIs
+
+🎁 Ce que j’attends
+
+Génère la structure complète du monorepo
+
+Génère tous les fichiers principaux
+
+Fournis des instructions de setup
+
+Génère l’API NestJS prête à consommer Watchmode + TMDB
+
+Génère un UI complet conforme à shadcn
+
+Ajoute les scripts d’intégration CI/CD
+
+Documente toute l’architecture dans un fichier ARCHITECTURE.md
+
+👉 Agis comme un senior engineer principal.
+Priorité : robustesse, simplicité, maintenabilité, scalabilité.
+Chaque choix doit être justifié.
