@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TmdbService } from '../services/tmdb/tmdb.service';
 import { WatchmodeService } from '../services/watchmode/watchmode.service';
 import type { WatchProvider } from '@movtime/types';
 import { CacheTTL } from '../common/decorators/cache.decorator';
-import { CACHE_CONFIG } from '@movtime/config';
+import { CACHE_CONFIG, API_CONFIG } from '@movtime/config';
+import { HttpClient } from '../common/utils/http-client.util';
 
 interface TMDBWatchProvidersResponse {
   id: number;
@@ -27,15 +28,25 @@ interface TMDBWatchProvidersResponse {
  * Handles merging data from multiple sources and country-specific filtering.
  */
 @Injectable()
-export class WatchProvidersService {
+export class WatchProvidersService implements OnModuleInit {
   private readonly logger = new Logger(WatchProvidersService.name);
-  private httpClient: any;
+  private tmdbHttp: HttpClient;
 
   constructor(
     private configService: ConfigService,
     private tmdbService: TmdbService,
     private watchmodeService: WatchmodeService
   ) {}
+
+  onModuleInit() {
+    const baseUrl = this.configService.get('TMDB_API_URL') ?? API_CONFIG.TMDB.BASE_URL;
+    const apiKey = this.configService.get('TMDB_API_KEY') ?? API_CONFIG.TMDB.API_KEY;
+    this.tmdbHttp = new HttpClient(
+      baseUrl,
+      { Authorization: `Bearer ${apiKey}` },
+      this.logger
+    );
+  }
 
   /**
    * Get watch providers for a movie
@@ -47,9 +58,13 @@ export class WatchProvidersService {
       const tmdbProviders = await this.getTmdbProviders(movieId, 'movie', country);
 
       // Merge with Watchmode if available (optional enhancement)
-      // const watchmodeProviders = await this.watchmodeService.getWatchProviders(movieId, 'movie', country);
+      const watchmodeProviders = await this.watchmodeService.getWatchProviders(
+        movieId,
+        'movie',
+        country
+      );
 
-      return this.deduplicateProviders(tmdbProviders);
+      return this.deduplicateProviders([...tmdbProviders, ...watchmodeProviders]);
     } catch (error) {
       this.logger.error(`Failed to get movie providers: ${error.message}`);
       return [];
@@ -63,7 +78,8 @@ export class WatchProvidersService {
   async getTvProviders(tvId: number, country: string = 'FR'): Promise<WatchProvider[]> {
     try {
       const tmdbProviders = await this.getTmdbProviders(tvId, 'tv', country);
-      return this.deduplicateProviders(tmdbProviders);
+      const watchmodeProviders = await this.watchmodeService.getWatchProviders(tvId, 'tv', country);
+      return this.deduplicateProviders([...tmdbProviders, ...watchmodeProviders]);
     } catch (error) {
       this.logger.error(`Failed to get TV providers: ${error.message}`);
       return [];
@@ -78,32 +94,29 @@ export class WatchProvidersService {
     mediaType: 'movie' | 'tv',
     country: string
   ): Promise<WatchProvider[]> {
-    // This would need to call TMDB watch/providers endpoint
-    // For now, return empty array - will be implemented when HTTP client is properly set up
-    // TMDB endpoint: `/movie/${id}/watch/providers` or `/tv/${id}/watch/providers`
+    const response = await this.tmdbHttp.get<TMDBWatchProvidersResponse>(
+      `/${mediaType}/${id}/watch/providers`
+    );
+    const countryData = response.results?.[country.toUpperCase()];
+    if (!countryData) return [];
 
-    const providers: WatchProvider[] = [];
+    const mapBucket = (bucket: keyof typeof countryData, type: WatchProvider['type']) =>
+      (countryData[bucket] ?? []).map((p) => ({
+        providerId: p.provider_id,
+        providerName: p.provider_name,
+        logoPath: p.logo_path,
+        displayPriority: p.display_priority,
+        type,
+        link: countryData.link,
+      }));
 
-    // Example implementation structure:
-    // const response = await this.httpClient.get<TMDBWatchProvidersResponse>(
-    //   `/${mediaType}/${id}/watch/providers`
-    // );
-    // const countryData = response.results[country.toUpperCase()];
-    // if (countryData) {
-    //   if (countryData.flatrate) {
-    //     providers.push(...countryData.flatrate.map(p => ({
-    //       providerId: p.provider_id,
-    //       providerName: p.provider_name,
-    //       logoPath: p.logo_path,
-    //       displayPriority: p.display_priority,
-    //       type: 'flatrate' as const,
-    //       link: countryData.link,
-    //     })));
-    //   }
-    //   // Similar for rent, buy, ads, free...
-    // }
-
-    return providers;
+    return [
+      ...mapBucket('flatrate', 'flatrate'),
+      ...mapBucket('rent', 'rent'),
+      ...mapBucket('buy', 'buy'),
+      ...mapBucket('ads', 'ads'),
+      ...mapBucket('free', 'free'),
+    ];
   }
 
   /**

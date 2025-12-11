@@ -4,7 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
-import { SentryModule } from '@sentry/nestjs/setup';
+import { SentryModule } from '@sentry/nestjs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
