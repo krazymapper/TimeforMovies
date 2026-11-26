@@ -7,7 +7,9 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
+import { UserEndpointsGuard } from '../common/guards/user-endpoints.guard';
 import { ListsService } from './lists.service';
 import { IsString, IsBoolean, IsOptional, IsNumber, IsEnum, MinLength, MaxLength, IsInt, Min } from 'class-validator';
 
@@ -43,6 +45,7 @@ class AddListItemDto {
  * Handles user-created lists (Watchlist, Custom lists, etc.).
  */
 @Controller('lists')
+@UseGuards(UserEndpointsGuard)
 export class ListsController {
   constructor(private readonly listsService: ListsService) {}
 

@@ -1,14 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpClient } from '../../common/utils/http-client.util';
-import { API_CONFIG, CACHE_CONFIG } from '@movtime/config';
+import { API_CONFIG } from '@movtime/config';
 import type {
   MediaItem,
   MediaDetails,
-  Cast,
-  Crew,
-  Trailer,
-  Genre,
   SearchResult,
 } from '@movtime/types';
 
@@ -201,10 +197,9 @@ export class TmdbService implements OnModuleInit {
    */
   async getMovieDetails(
     movieId: number,
-    options: { language?: string; appendToResponse?: string } = {}
+    options: { language?: string } = {}
   ): Promise<MediaDetails> {
-    const { language = this.language, appendToResponse = 'credits,videos,similar,recommendations' } =
-      options;
+    const { language = this.language } = options;
 
     try {
       const [movie, credits, videos, similar, recommendations] = await Promise.all([
@@ -387,7 +382,6 @@ export class TmdbService implements OnModuleInit {
     const base = this.transformToMediaItem(item, mediaType);
     const isMovie = mediaType === 'movie';
     const movieItem = item as TMDBMovieResponse;
-    const tvItem = item as TMDBSeriesResponse;
 
     // Find official trailer
     const trailerVideo = additional.videos.find(
@@ -422,12 +416,12 @@ export class TmdbService implements OnModuleInit {
         : undefined,
       watchProviders: [], // Will be populated by WatchProvidersService
       similar: additional.similar.map((item) =>
-        this.transformToMediaItem(item, item.release_date ? 'movie' : 'tv')
+        this.transformToMediaItem(item, 'release_date' in item ? 'movie' : 'tv')
       ),
       recommendations: additional.recommendations.map((item) =>
-        this.transformToMediaItem(item, item.release_date ? 'movie' : 'tv')
+        this.transformToMediaItem(item, 'release_date' in item ? 'movie' : 'tv')
       ),
-      productionCompanies: item.production_companies?.map((pc) => ({
+      productionCompanies: (item.production_companies ?? []).map((pc) => ({
         id: pc.id,
         name: pc.name,
         logoPath: pc.logo_path,
@@ -437,7 +431,11 @@ export class TmdbService implements OnModuleInit {
       revenue: isMovie ? movieItem.revenue : undefined,
       status: item.status || 'unknown',
       tagline: item.tagline,
-      spokenLanguages: item.spoken_languages || [],
+      spokenLanguages: (item.spoken_languages ?? []).map((l) => ({
+        iso_639_1: l.iso_639_1,
+        name: l.name,
+        englishName: l.english_name,
+      })),
       originCountry: item.origin_country,
     };
   }

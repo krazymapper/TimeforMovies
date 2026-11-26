@@ -3,10 +3,12 @@ import { mediaApi } from '@/lib/api';
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string };
+  // Next 15 : searchParams est une Promise
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const q = searchParams.q?.trim();
-  const page = Number(searchParams.page || 1) || 1;
+  const params = await searchParams;
+  const q = params.q?.trim();
+  const page = Number(params.page || 1) || 1;
 
   if (!q) {
     return (

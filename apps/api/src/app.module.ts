@@ -4,7 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
-import { SentryModule } from '@sentry/nestjs';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -54,11 +54,8 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     // Sentry (optional, only if DSN is provided)
     ...(process.env.SENTRY_DSN
       ? [
-          SentryModule.forRoot({
-            dsn: process.env.SENTRY_DSN,
-            environment: process.env.SENTRY_ENVIRONMENT || 'development',
-            tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-          }),
+          // Configuration dans src/instrument.ts (Sentry.init), chargé en premier par main.ts
+          SentryModule.forRoot(),
         ]
       : []),
     // Application modules

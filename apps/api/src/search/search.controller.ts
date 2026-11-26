@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Delete, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { UserEndpointsGuard } from '../common/guards/user-endpoints.guard';
 import { SearchService } from './search.service';
 import { IsString, IsEnum, IsOptional, MinLength, Length } from 'class-validator';
 
@@ -23,6 +24,7 @@ class SaveSearchDto {
  * Handles search functionality and search history.
  */
 @Controller('search')
+@UseGuards(UserEndpointsGuard)
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 

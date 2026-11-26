@@ -7,8 +7,8 @@ import {
   ParseIntPipe,
   Body,
   UseGuards,
-  Request,
 } from '@nestjs/common';
+import { UserEndpointsGuard } from '../common/guards/user-endpoints.guard';
 import { FavoritesService } from './favorites.service';
 import { IsNumber, IsEnum, IsInt, Min } from 'class-validator';
 
@@ -29,6 +29,7 @@ class AddFavoriteDto {
  * For now, accepts userId as query parameter for development.
  */
 @Controller('favorites')
+@UseGuards(UserEndpointsGuard)
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 

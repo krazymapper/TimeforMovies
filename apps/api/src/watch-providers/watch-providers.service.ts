@@ -101,13 +101,13 @@ export class WatchProvidersService implements OnModuleInit {
     if (!countryData) return [];
 
     const mapBucket = (bucket: keyof typeof countryData, type: WatchProvider['type']) =>
-      (countryData[bucket] ?? []).map((p) => ({
+      (countryData[bucket] as any[] ?? []).map((p: any) => ({
         providerId: p.provider_id,
         providerName: p.provider_name,
-        logoPath: p.logo_path,
-        displayPriority: p.display_priority,
+        logoPath: p.logo_path as string,
+        displayPriority: p.display_priority as number,
         type,
-        link: countryData.link,
+        link: countryData.link as string,
       }));
 
     return [

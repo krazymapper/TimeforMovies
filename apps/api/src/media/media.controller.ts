@@ -5,8 +5,8 @@ import {
   Query,
   ParseIntPipe,
   UseInterceptors,
-  CacheInterceptor,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { MediaService } from './media.service';
 import { WatchProvidersService } from '../watch-providers/watch-providers.service';
 import { CacheTTL } from '../common/decorators/cache.decorator';

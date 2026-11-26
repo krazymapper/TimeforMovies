@@ -4,8 +4,8 @@ export interface MediaItem {
   title: string;
   originalTitle?: string;
   overview: string;
-  posterPath?: string;
-  backdropPath?: string;
+  posterPath?: string | null;
+  backdropPath?: string | null;
   releaseDate?: string;
   mediaType: 'movie' | 'tv';
   popularity: number;
@@ -28,7 +28,7 @@ export interface Cast {
   id: number;
   name: string;
   character?: string;
-  profilePath?: string;
+  profilePath?: string | null;
   order: number;
 }
 
@@ -37,7 +37,7 @@ export interface Crew {
   name: string;
   job: string;
   department: string;
-  profilePath?: string;
+  profilePath?: string | null;
 }
 
 export interface MediaDetails extends MediaItem {
@@ -68,7 +68,7 @@ export interface Trailer {
 export interface WatchProvider {
   providerId: number;
   providerName: string;
-  logoPath: string;
+  logoPath: string | null;
   displayPriority: number;
   type: 'flatrate' | 'rent' | 'buy' | 'ads' | 'free';
   link?: string;
@@ -79,7 +79,7 @@ export interface WatchProvider {
 export interface ProductionCompany {
   id: number;
   name: string;
-  logoPath?: string;
+  logoPath?: string | null;
   originCountry: string;
 }
 
